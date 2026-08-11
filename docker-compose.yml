@@ -1,0 +1,13 @@
+services:
+  bnc-backend:
+    build: .
+    image: bnc-backend:local
+    ports:
+      - "8000:8000"
+    environment:
+      NETBOX_URL: ${NETBOX_URL:-https://netbox.example.com}
+      NETBOX_TOKEN: ${NETBOX_TOKEN:-}
+      NETBOX_SYNC_TAG: ${NETBOX_SYNC_TAG:-external-ctrl-bnc}
+      NETBOX_VERIFY_SSL: ${NETBOX_VERIFY_SSL:-true}
+      NETBOX_WEBHOOK_SECRET: ${NETBOX_WEBHOOK_SECRET:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
