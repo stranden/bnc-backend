@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Central application settings, sourced from environment variables."""
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
     # --- General ---
     app_name: str = "Broadcast Network Controller (BNC)"
@@ -28,25 +28,13 @@ class Settings(BaseSettings):
     # Only objects tagged with this NetBox tag are visible to BNC.
     # NetBox tags don't natively support "key: value" pairs; by convention
     # this is the *slug* of the tag created in NetBox (e.g. "external-ctrl-bnc").
-    netbox_sync_tag: str = "external-ctrl-bnc"
+    netbox_tag_external_ctrl: str = "external-ctrl-bnc"
 
     # Devices additionally tagged with this NetBox tag may be *actively
     # managed* by BNC (e.g. changing switch ports, pushing config). This is a
-    # stricter subset of `netbox_sync_tag` — a device must carry both tags
-    # before any write/push operation is allowed against it. Slug of the
-    # NetBox tag "bnc-state: manage".
-    netbox_manage_tag: str = "bnc-state-manage"
-
-    # --- Webhooks ---
-    # Shared secret configured on the NetBox webhook (HMAC signature verification).
-    netbox_webhook_secret: str = ""
-
-    # --- Nornir / NAPALM ---
-    nornir_config_file: str = "nornir_config/config.yaml"
-    napalm_username: str = ""
-    napalm_password: str = ""
-    napalm_timeout: int = 60
-
+    # stricter subset of `netbox_tag_external_ctrl` — a device must carry both tags
+    # before any write/push operation is allowed against it. Slug of the NetBox tag.
+    netbox_tag_state_manage: str = "bnc-state-manage"
 
 @lru_cache
 def get_settings() -> Settings:

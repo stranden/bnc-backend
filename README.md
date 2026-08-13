@@ -1,36 +1,30 @@
-# bnc-backend
-Backend for Broadcast Network Controller (BNC)
+# Broadcast Network Controller (BNC)
 
-FastAPI service that reads Sites, Devices, Device Types, Prefixes, IP
-Addresses, VLAN Groups and VLANs from [NetBox](https://netbox.dev), scoped
-strictly to objects tagged with a configurable BNC tag (default slug
-`external-ctrl-bnc`, corresponding to a NetBox tag such as `external-ctrl:
-bnc`). NetBox remains the single source of truth (SSoT/NSoT) — BNC does not
-persist its own copy of these objects.
+Backend for Broadcast Network Controller (BNC), built with FastAPI and
+[NetBox](https://netbox.dev). NetBox remains the single source of truth; BNC
+does not persist a separate copy of NetBox objects.
 
-A second, stricter tag (default slug `bnc-state-manage`, corresponding to a
-NetBox tag such as `bnc-state: manage`) marks devices that BNC is
-additionally allowed to *actively manage* — e.g. changing switch ports or
-pushing configuration. A device must carry both tags before any future
-write/push operation will be permitted against it (`NetBoxClient.
-require_manageable_device`); read-only sync only requires the first tag.
+The current implementation provides a NetBox client and low-level
+`pynetbox` adapter for BNC-tagged VLAN Groups, VLANs, prefixes, and IP ranges.
+Read operations require the external-control tag. Create and update operations
+also require the state-management tag, so writes are limited to objects that
+are explicitly managed by BNC.
 
-A NetBox webhook receiver (`POST /webhooks/netbox`) is scaffolded to receive
-change events for BNC-tagged objects; the push-to-network step (via Nornir +
-NAPALM) will be wired in as a follow-up once the read path is stable.
+The FastAPI application is currently scaffolded and does not register HTTP
+routes yet. Network-profile definitions are available for `data`, `dante`,
+`aes67`, and `smpte-2110`.
 
 ## Configuration
 
 All settings are environment variables (see `.env.example`). Key ones:
 
-| Variable                | Description                                             |
-|-------------------------|-----------------------------------------------------------|
-| `NETBOX_URL`            | Base URL of the NetBox instance                          |
-| `NETBOX_TOKEN`          | NetBox API token                                         |
-| `NETBOX_SYNC_TAG`       | Slug of the tag BNC is scoped to (e.g. `external-ctrl-bnc`) |
-| `NETBOX_MANAGE_TAG`     | Slug of the tag marking devices BNC may actively manage (e.g. `bnc-state-manage`) |
-| `NETBOX_VERIFY_SSL`     | Verify NetBox's TLS certificate                          |
-| `NETBOX_WEBHOOK_SECRET` | Shared secret for verifying NetBox webhook signatures    |
+| Variable                    | Description                                             |
+|-----------------------------|---------------------------------------------------------|
+| `NETBOX_URL`                | Base URL of the NetBox instance                         |
+| `NETBOX_TOKEN`              | NetBox API token                                        |
+| `NETBOX_TAG_EXTERNAL_CTRL`  | Slug of the tag BNC is scoped to (default: `external-ctrl-bnc`) |
+| `NETBOX_TAG_STATE_MANAGE`   | Slug of the tag that permits BNC-managed writes (default: `bnc-state-manage`) |
+| `NETBOX_VERIFY_SSL`         | Verify NetBox's TLS certificate                         |
 
 Copy `.env.example` to `.env` for local development, or pass variables via
 `docker run -e ...` / `docker-compose.yml` in production.
@@ -41,6 +35,14 @@ Copy `.env.example` to `.env` for local development, or pass variables via
 docker compose up --build
 ```
 
-The API will be available at `http://localhost:8000` (interactive docs at
-`/docs`).
+The FastAPI application will be available at `http://localhost:8000`.
+Interactive OpenAPI documentation is available at `/docs`.
+
+For local development without Docker, install the dependencies and start
+Uvicorn from the repository root:
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 

@@ -7,7 +7,8 @@ services:
     environment:
       NETBOX_URL: ${NETBOX_URL:-https://netbox.example.com}
       NETBOX_TOKEN: ${NETBOX_TOKEN:-}
-      NETBOX_SYNC_TAG: ${NETBOX_SYNC_TAG:-external-ctrl-bnc}
+      NETBOX_TAG_EXTERNAL_CTRL: ${NETBOX_TAG_EXTERNAL_CTRL:-external-ctrl-bnc}
+      NETBOX_TAG_STATE_MANAGE: ${NETBOX_TAG_STATE_MANAGE:-bnc-state-manage}
       NETBOX_VERIFY_SSL: ${NETBOX_VERIFY_SSL:-true}
       NETBOX_WEBHOOK_SECRET: ${NETBOX_WEBHOOK_SECRET:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
