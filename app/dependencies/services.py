@@ -1,5 +1,5 @@
-from app.netbox import NetBoxClient
-from app.services.site import SiteService
+from netbox import NetBoxClient
+from services.site import SiteService
 
 
 def get_netbox_client() -> NetBoxClient:

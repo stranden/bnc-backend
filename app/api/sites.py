@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.dependencies.services import get_site_service
-from app.netbox.client import NetBoxNotFoundError
-from app.schemas.site import SiteResponse
-from app.services.site import SiteService
+from dependencies.services import get_site_service
+from netbox.client import NetBoxNotFoundError
+from schemas.site import SiteResponse
+from services.site import SiteService
 
-
-router = APIRouter(
-    prefix="/sites",
-    tags=["Sites"],
-)
-
+router = APIRouter()
 
 @router.get(
     "",

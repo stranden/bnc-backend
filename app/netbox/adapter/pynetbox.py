@@ -4,7 +4,7 @@ from typing import Any
 
 import pynetbox
 
-from app.config.settings import settings
+from config.settings import settings
 
 
 class PynetboxAdapter:

@@ -1,5 +1,5 @@
 
-from app.profiles.base import NetworkProfile
+from profiles.base import NetworkProfile
 
 
 DANTE = NetworkProfile(

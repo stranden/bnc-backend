@@ -1,7 +1,7 @@
 from typing import Any
 
-from app.netbox import NetBoxClient
-from app.schemas.site import SiteCounts, SiteResponse
+from netbox import NetBoxClient
+from schemas.site import SiteCounts, SiteResponse
 
 
 class SiteService:

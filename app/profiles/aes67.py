@@ -1,4 +1,4 @@
-from app.profiles.base import NetworkProfile
+from profiles.base import NetworkProfile
 
 
 AES67 = NetworkProfile(
