@@ -1,8 +1,8 @@
-from profiles.base import NetworkProfile
-from profiles.data import DATA
-from profiles.dante import DANTE
-from profiles.aes67 import AES67
-from profiles.smpte_2110 import SMPTE_2110
+from app.profiles.base import NetworkProfile
+from app.profiles.data import DATA
+from app.profiles.dante import DANTE
+from app.profiles.aes67 import AES67
+from app.profiles.smpte_2110 import SMPTE_2110
 
 
 PROFILES: dict[str, NetworkProfile] = {

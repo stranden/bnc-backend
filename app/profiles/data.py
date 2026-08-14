@@ -1,5 +1,5 @@
 
-from profiles.base import NetworkProfile
+from app.profiles.base import NetworkProfile
 
 
 DATA = NetworkProfile(

@@ -1,3 +1,3 @@
-from netbox.client import NetBoxClient
+from app.netbox.client import NetBoxClient
 
 __all__ = ["NetBoxClient"]

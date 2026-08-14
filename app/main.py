@@ -3,8 +3,8 @@ import logging
 
 from fastapi import FastAPI
 
-from config.settings import get_settings
-from api import api_router
+from app.config.settings import get_settings
+from app.api import api_router
 
 settings = get_settings()
 

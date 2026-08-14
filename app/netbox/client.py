@@ -3,8 +3,8 @@ from __future__ import annotations
 import ipaddress
 from typing import Any
 
-from config.settings import settings
-from netbox.adapter.pynetbox import PynetboxAdapter
+from app.config.settings import settings
+from app.netbox.adapter.pynetbox import PynetboxAdapter
 
 
 class NetBoxError(Exception):

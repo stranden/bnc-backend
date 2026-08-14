@@ -1,4 +1,4 @@
-from profiles.base import NetworkProfile
+from app.profiles.base import NetworkProfile
 
 
 SMPTE_2110 = NetworkProfile(
