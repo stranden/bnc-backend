@@ -56,7 +56,10 @@ class NetBoxClient:
     # Tags
     # ==================================================================
 
-    def _get_tag_id(self, slug: str) -> int:
+    def _get_tag_id(
+        self,
+        slug: str,
+    ) -> int:
         """
         Resolve a NetBox tag slug to its NetBox ID.
 
@@ -72,7 +75,10 @@ class NetBoxClient:
 
     def _get_bnc_tags(self) -> list[int]:
         """
-        Return the tags that identify an object as BNC-managed.
+        Return the tags used by BNC for newly created objects.
+
+        The first tag identifies the object as exposed to BNC.
+        The second tag identifies the object as managed by BNC.
         """
 
         return [
@@ -109,7 +115,10 @@ class NetBoxClient:
 
         return False
 
-    def _is_exposed(self, record: Any) -> bool:
+    def _is_exposed(
+        self,
+        record: Any,
+    ) -> bool:
         """
         Determine whether an object is exposed to BNC.
         """
@@ -119,7 +128,10 @@ class NetBoxClient:
             settings.netbox_tag_external_ctrl,
         )
 
-    def _is_managed(self, record: Any) -> bool:
+    def _is_managed(
+        self,
+        record: Any,
+    ) -> bool:
         """
         Determine whether BNC is allowed to modify an object.
 
@@ -186,6 +198,164 @@ class NetBoxClient:
             )
 
         return record
+
+    # ==================================================================
+    # Sites
+    # ==================================================================
+
+    def get_sites(self) -> list[Any]:
+        """
+        Get Sites exposed to BNC.
+
+        Sites themselves are read-only from the BNC perspective.
+        """
+
+        return self.adapter.filter_sites(
+            tag=settings.netbox_tag_external_ctrl,
+        )
+
+    def get_site(
+        self,
+        site_id: int,
+    ) -> Any:
+        """
+        Get a Site exposed to BNC.
+        """
+
+        site = self.adapter.get_site(
+            site_id
+        )
+
+        return self._require_exposed(
+            site,
+            "Site",
+            site_id,
+        )
+
+    def get_site_counts(
+        self,
+        site_id: int,
+    ) -> dict[str, int]:
+        """
+        Get BNC-visible object counts for a Site.
+
+        Visibility is based on the external-ctrl-bnc tag.
+
+        Hierarchy:
+
+            Site
+            ├── Devices
+            └── VLAN Groups
+                └── VLANs
+                    └── Prefixes
+
+        A child object is counted only when both the object itself
+        and its required parent hierarchy are exposed to BNC.
+        """
+
+        # Make sure the Site itself exists and is exposed.
+        site = self.get_site(site_id)
+
+        external_tag = settings.netbox_tag_external_ctrl
+
+        # --------------------------------------------------------------
+        # Devices
+        # --------------------------------------------------------------
+
+        devices = self.adapter.filter_devices(
+            site_id=site.id,
+            tag=external_tag,
+        )
+
+        device_count = len(devices)
+
+        # --------------------------------------------------------------
+        # VLAN Groups
+        # --------------------------------------------------------------
+
+        vlan_groups = self.adapter.filter_vlan_groups(
+            site_id=site.id,
+            tag=external_tag,
+        )
+
+        vlan_group_count = len(vlan_groups)
+
+        if not vlan_groups:
+            return {
+                "device_count": device_count,
+                "vlan_group_count": 0,
+                "vlan_count": 0,
+                "prefix_count": 0,
+            }
+
+        vlan_group_ids = {
+            vlan_group.id
+            for vlan_group in vlan_groups
+        }
+
+        # --------------------------------------------------------------
+        # VLANs
+        # --------------------------------------------------------------
+
+        # Fetch all BNC-visible VLANs in one request and then restrict
+        # them to the BNC-visible VLAN Groups belonging to this Site.
+        vlans = self.adapter.filter_vlans(
+            tag=external_tag,
+        )
+
+        site_vlans = [
+            vlan
+            for vlan in vlans
+            if getattr(
+                getattr(vlan, "group", None),
+                "id",
+                None,
+            ) in vlan_group_ids
+        ]
+
+        vlan_count = len(site_vlans)
+
+        if not site_vlans:
+            return {
+                "device_count": device_count,
+                "vlan_group_count": vlan_group_count,
+                "vlan_count": 0,
+                "prefix_count": 0,
+            }
+
+        vlan_ids = {
+            vlan.id
+            for vlan in site_vlans
+        }
+
+        # --------------------------------------------------------------
+        # Prefixes
+        # --------------------------------------------------------------
+
+        # Fetch all BNC-visible prefixes in one request and restrict
+        # them to the BNC-visible VLANs belonging to this Site.
+        prefixes = self.adapter.filter_prefixes(
+            tag=external_tag,
+        )
+
+        site_prefixes = [
+            prefix
+            for prefix in prefixes
+            if getattr(
+                getattr(prefix, "vlan", None),
+                "id",
+                None,
+            ) in vlan_ids
+        ]
+
+        prefix_count = len(site_prefixes)
+
+        return {
+            "device_count": device_count,
+            "vlan_group_count": vlan_group_count,
+            "vlan_count": vlan_count,
+            "prefix_count": prefix_count,
+        }
 
     # ==================================================================
     # VLAN Groups
@@ -257,7 +427,9 @@ class NetBoxClient:
         Get a VLAN exposed to BNC.
         """
 
-        vlan = self.adapter.get_vlan(vlan_id)
+        vlan = self.adapter.get_vlan(
+            vlan_id
+        )
 
         return self._require_exposed(
             vlan,
@@ -273,7 +445,9 @@ class NetBoxClient:
         Get a VLAN managed by BNC.
         """
 
-        vlan = self.adapter.get_vlan(vlan_id)
+        vlan = self.adapter.get_vlan(
+            vlan_id
+        )
 
         return self._require_managed(
             vlan,
@@ -329,7 +503,9 @@ class NetBoxClient:
         if description is not None:
             data["description"] = description
 
-        return self.adapter.create_vlan(data)
+        return self.adapter.create_vlan(
+            data
+        )
 
     def update_vlan(
         self,
@@ -343,7 +519,9 @@ class NetBoxClient:
         Update an existing BNC-managed VLAN.
         """
 
-        vlan = self.get_managed_vlan(vlan_id)
+        vlan = self.get_managed_vlan(
+            vlan_id
+        )
 
         changes: dict[str, Any] = {}
 
@@ -385,7 +563,9 @@ class NetBoxClient:
         Get a prefix exposed to BNC.
         """
 
-        prefix = self.adapter.get_prefix(prefix_id)
+        prefix = self.adapter.get_prefix(
+            prefix_id
+        )
 
         return self._require_exposed(
             prefix,
@@ -401,7 +581,9 @@ class NetBoxClient:
         Get a prefix managed by BNC.
         """
 
-        prefix = self.adapter.get_prefix(prefix_id)
+        prefix = self.adapter.get_prefix(
+            prefix_id
+        )
 
         return self._require_managed(
             prefix,
@@ -421,7 +603,9 @@ class NetBoxClient:
         Create a prefix attached to a BNC-managed VLAN.
         """
 
-        vlan = self.get_managed_vlan(vlan_id)
+        vlan = self.get_managed_vlan(
+            vlan_id
+        )
 
         try:
             network = ipaddress.ip_network(
@@ -443,7 +627,9 @@ class NetBoxClient:
         if description is not None:
             data["description"] = description
 
-        return self.adapter.create_prefix(data)
+        return self.adapter.create_prefix(
+            data
+        )
 
     def update_prefix(
         self,
@@ -456,7 +642,9 @@ class NetBoxClient:
         Update an existing BNC-managed prefix.
         """
 
-        prefix = self.get_managed_prefix(prefix_id)
+        prefix = self.get_managed_prefix(
+            prefix_id
+        )
 
         changes: dict[str, Any] = {}
 
@@ -586,7 +774,9 @@ class NetBoxClient:
         if description is not None:
             data["description"] = description
 
-        return self.adapter.create_ip_range(data)
+        return self.adapter.create_ip_range(
+            data
+        )
 
     def update_ip_range(
         self,

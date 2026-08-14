@@ -34,6 +34,42 @@ class PynetboxAdapter:
         )
 
     # ==================================================================
+    # Sites
+    # ==================================================================
+
+    def get_site(
+        self,
+        site_id: int,
+    ) -> Any | None:
+        return self.api.dcim.sites.get(
+            site_id
+        )
+
+    def filter_sites(
+        self,
+        **filters: Any,
+    ) -> list[Any]:
+        return list(
+            self.api.dcim.sites.filter(
+                **filters
+            )
+        )
+
+    # ==================================================================
+    # Devices
+    # ==================================================================
+
+    def filter_devices(
+        self,
+        **filters: Any,
+    ) -> list[Any]:
+        return list(
+            self.api.dcim.devices.filter(
+                **filters
+            )
+        )
+
+    # ==================================================================
     # VLAN Groups
     # ==================================================================
 
