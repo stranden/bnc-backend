@@ -1,26 +1,24 @@
+from __future__ import annotations
+
 from typing import Any
 
 from app.netbox import NetBoxClient
-from app.schemas.site import SiteCounts, SiteResponse
 
 
 class SiteService:
-
     def __init__(
         self,
         netbox: NetBoxClient,
     ) -> None:
         self.netbox = netbox
 
-    def get_sites(self) -> list[SiteResponse]:
+    def get_sites(self) -> list[dict[str, Any]]:
         sites = self.netbox.get_sites()
 
         return [
-            self._to_response(
+            self._to_data(
                 site,
-                self.netbox.get_site_counts(
-                    site.id
-                ),
+                self.netbox.get_site_counts(site.id),
             )
             for site in sites
         ]
@@ -28,62 +26,42 @@ class SiteService:
     def get_site(
         self,
         site_id: int,
-    ) -> SiteResponse:
-        site = self.netbox.get_site(
-            site_id
-        )
+    ) -> dict[str, Any]:
+        site = self.netbox.get_site(site_id)
+        counts = self.netbox.get_site_counts(site_id)
 
-        counts = self.netbox.get_site_counts(
-            site_id
-        )
-
-        return self._to_response(
+        return self._to_data(
             site,
             counts,
         )
 
     @staticmethod
-    def _to_response(
+    def _to_data(
         site: Any,
-        counts: SiteCounts | dict[str, int],
-    ) -> SiteResponse:
-        if isinstance(counts, dict):
-            counts = SiteCounts(
-                **counts
-            )
+        counts: dict[str, int],
+    ) -> dict[str, Any]:
+        tenant = getattr(site, "tenant", None)
+        site_group = getattr(site, "group", None)
 
-        tenant = getattr(
-            site,
-            "tenant",
-            None,
-        )
-
-        site_group = getattr(
-            site,
-            "group",
-            None,
-        )
-
-        return SiteResponse(
-            id=site.id,
-            name=site.name,
-            description=getattr(
+        return {
+            "id": site.id,
+            "name": site.name,
+            "description": getattr(
                 site,
                 "description",
                 None,
             ),
-            tenant=(
+            "tenant": (
                 tenant.name
                 if tenant is not None
                 else None
             ),
-            site_group=(
+            "site_group": (
                 site_group.name
                 if site_group is not None
                 else None
             ),
-            device_count=counts.device_count,
-            vlan_group_count=counts.vlan_group_count,
-            vlan_count=counts.vlan_count,
-            prefix_count=counts.prefix_count,
-        )
+            "device_count": counts["device_count"],
+            "vlan_count": counts["vlan_count"],
+            "prefix_count": counts["prefix_count"],
+        }

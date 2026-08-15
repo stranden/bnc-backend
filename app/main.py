@@ -1,12 +1,12 @@
 """FastAPI application entrypoint for the Broadcast Network Controller (BNC) backend."""
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
-from app.config.settings import get_settings
+from app.config.settings import settings
+from app.netbox import NetBoxNotFoundError
 from app.api import api_router
-
-settings = get_settings()
 
 logging.basicConfig(level=settings.log_level)
 
@@ -23,15 +23,27 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     docs_url="/docs",
-    redoc_url=None
+    redoc_url=None,
 )
 
 app.include_router(api_router, prefix="/api")
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return {"message": "RangeConnectBackend have been started correctly!"}
+    return {"message": "Broadcast Network Controller (BNC) has been started correctly!"}
 
 @app.get("/healthz", include_in_schema=False)
 async def healthz():
     return {"message": "Application ready"}
+
+@app.exception_handler(NetBoxNotFoundError)
+async def netbox_not_found_handler(
+    request: Request,
+    exc: NetBoxNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+        },
+    )

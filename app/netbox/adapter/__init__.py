@@ -1,3 +1,0 @@
-"""
-NetBox adapters.
-"""
