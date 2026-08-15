@@ -1,17 +1,21 @@
+from dataclasses import dataclass
 
 from app.templates.base import NetworkTemplate
 
 
-DANTE_TEMPLATE = NetworkTemplate(
-    key="dante",
+@dataclass(frozen=True)
+class DanteTemplate(NetworkTemplate):
+    """
+    Network template for Dante audio networks.
+    """
+
+    ptp_version: int = 1
+    multicast: bool = True
+    igmp_querier: bool = True
+
+
+DANTE = DanteTemplate(
+    slug="dante",
     name="Dante",
-    netbox_tag="bnc-template-dante",
-
-    multicast=True,
-    igmp=True,
-    igmp_querier=True,
-    qos=True,
-
-    ptp_version="v1",
-    ptp_boundary_clock=False,
+    description="Dante audio network.",
 )

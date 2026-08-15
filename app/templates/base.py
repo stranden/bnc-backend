@@ -6,21 +6,12 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class NetworkTemplate:
     """
-    BNC network template.
+    Base definition for a BNC network service template.
 
-    A template describes the intent of a VLAN.
-
-    It does not contain vendor-specific switch configuration.
+    A NetworkTemplate describes the intended characteristics of
+    a network service. It is not a device configuration template.
     """
 
-    key: str
+    slug: str
     name: str
-    netbox_tag: str
-
-    multicast: bool = False
-    igmp: bool = False
-    igmp_querier: bool = False
-    qos: bool = False
-
-    ptp_version: str | None = None
-    ptp_boundary_clock: bool = False
+    description: str

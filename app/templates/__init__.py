@@ -1,16 +1,11 @@
-"""
-Network templates.
-"""
-from app.templates.base import NetworkTemplate
-from app.templates.registry import (
-    get_template,
-    get_template_by_tag,
-    get_templates,
-)
+from app.templates.aes67 import AES67
+from app.templates.data import DATA
+from app.templates.dante import DANTE
+from app.templates.smpte_2110 import SMPTE_2110
 
 __all__ = [
-    "NetworkTemplate",
-    "get_template",
-    "get_template_by_tag",
-    "get_templates",
+    "DANTE",
+    "AES67",
+    "DATA",
+    "SMPTE_2110",
 ]
