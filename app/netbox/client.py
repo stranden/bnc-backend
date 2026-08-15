@@ -31,7 +31,7 @@ class NetBoxClient:
         Return Sites exposed to BNC.
         """
         return self.adapter.filter_sites(
-            tag=settings.tag_external_ctrl,
+            tag=settings.netbox_tag_external_ctrl,
         )
 
     def get_site(
@@ -50,7 +50,7 @@ class NetBoxClient:
 
         if not self._has_tag(
             site,
-            settings.tag_external_ctrl,
+            settings.netbox_tag_external_ctrl,
         ):
             raise NetBoxNotFoundError(
                 f"Site {site_id} is not exposed to BNC."
@@ -99,7 +99,7 @@ class NetBoxClient:
 
         vlan_groups = self.adapter.filter_vlan_groups(
             site_id=site_id,
-            tag=settings.tag_external_ctrl,
+            tag=settings.netbox_tag_external_ctrl,
         )
 
         count = 0
