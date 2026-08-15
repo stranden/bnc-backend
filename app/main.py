@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.config.settings import settings
 from app.netbox import NetBoxNotFoundError
+from app.templates import TemplateNotFoundError
 from app.api import api_router
 
 logging.basicConfig(level=settings.log_level)
@@ -40,6 +41,18 @@ async def healthz():
 async def netbox_not_found_handler(
     request: Request,
     exc: NetBoxNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+        },
+    )
+
+@app.exception_handler(TemplateNotFoundError)
+async def template_not_found_handler(
+    request: Request,
+    exc: TemplateNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,

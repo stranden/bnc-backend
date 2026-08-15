@@ -7,18 +7,12 @@ from app.schemas.vlan import VlanCreate, VlanUpdate
 
 
 class VlanService:
-    """
-    BNC VLAN service.
-
-    Contains BNC/application-level VLAN operations.
-    NetBox-specific implementation details remain in NetBoxClient.
-    """
-
-    def __init__(
-        self,
-        netbox: NetBoxClient,
-    ) -> None:
+    def __init__(self, netbox: NetBoxClient) -> None:
         self.netbox = netbox
+
+    # ============================================================
+    # VLANs - Read
+    # ============================================================
 
     def get_vlans(
         self,
@@ -51,6 +45,10 @@ class VlanService:
             site_id=site_id,
         )
 
+    # ============================================================
+    # VLANs - Create
+    # ============================================================
+
     def create_vlan(
         self,
         data: VlanCreate,
@@ -60,29 +58,54 @@ class VlanService:
             vid=data.vid,
             name=data.name,
             description=data.description,
+            template=data.template,
         )
 
         return self._to_data(
             vlan,
             site_id=data.site_id,
         )
+
+    # ============================================================
+    # VLANs - Update
+    # ============================================================
 
     def update_vlan(
         self,
         vid: int,
         data: VlanUpdate,
     ) -> dict[str, Any]:
+        """
+        Update a VLAN.
+
+        The template field has three possible states:
+
+            template omitted
+                Do not change the current template.
+
+            template="dante"
+                Set/change the template.
+
+            template=null
+                Remove the template.
+        """
         vlan = self.netbox.update_vlan(
             vid=vid,
             site_id=data.site_id,
             name=data.name,
             description=data.description,
+            template=data.template,
+            update_template="template" in data.model_fields_set,
         )
 
         return self._to_data(
             vlan,
             site_id=data.site_id,
         )
+
+    # ============================================================
+    # VLANs - Delete
+    # ============================================================
 
     def delete_vlan(
         self,
@@ -94,19 +117,29 @@ class VlanService:
             site_id=site_id,
         )
 
-    @staticmethod
+    # ============================================================
+    # Serialization
+    # ============================================================
+
     def _to_data(
+        self,
         vlan: Any,
         site_id: int,
     ) -> dict[str, Any]:
+        template = self.netbox.get_vlan_template(vlan)
+
         return {
-            "id": vlan.id,
-            "site_id": site_id,
             "vid": vlan.vid,
+            "site_id": site_id,
             "name": vlan.name,
             "description": getattr(
                 vlan,
                 "description",
                 None,
+            ),
+            "template": (
+                template.slug
+                if template is not None
+                else None
             ),
         }

@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     # Prefix for NetBox template tags. BNC will only consider tags with this
     # prefix as template tags. This allows users to create their own tags
     # without conflicting with BNC template tags.
-    netbox_template_tag_prefix: str = "bnc-template-"
+    netbox_template_tag_prefix: str = "bnc-template"
 
 
 @lru_cache
